@@ -15,17 +15,21 @@ class JobController extends Controller
     {
         $query = Job::query();
 
-        if ($request->has('category')) {
+        if ($request->filled('category')) {
             $query->where('category', $request->category);
         }
 
-        if ($request->has('location')) {
+        if ($request->filled('location')) {
             $query->where('location', 'like', '%' . $request->location . '%');
         }
 
-        if ($request->has('search')) {
-            $query->where('title', 'like', '%' . $request->search . '%')
-                ->orWhere('company', 'like', '%' . $request->search . '%');
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($searchQuery) use ($search) {
+                $searchQuery
+                    ->where('title', 'like', '%' . $search . '%')
+                    ->orWhere('company', 'like', '%' . $search . '%');
+            });
         }
 
         return response()->json($query->latest()->get());
